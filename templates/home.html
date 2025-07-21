@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Automated Industrial Inspection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: url("{{ url_for('static', filename='image1.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            margin-top: 100px;
+            padding: 40px;
+            background-color: rgba(0, 0, 0, 0.6); /* Transparent dark overlay */
+            border-radius: 15px;
+            box-shadow: 0px 8px 20px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-weight: 600;
+        }
+
+        .btn {
+            font-size: 16px;
+            padding: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container text-center">
+    <h1 class="mb-4">🚀 Automated Industrial Inspection System</h1>
+
+    <!-- Live Detection Button -->
+    <a href="/live_detection" class="btn btn-success mb-4 w-100">
+        🟢 Start Live Defect Detection
+    </a>
+
+    <!-- Other Features -->
+    <div class="d-grid gap-2">
+        <a href="{{ url_for('bottle_scanning') }}" class="btn btn-primary mb-2">
+            🔍 Bottle Deformity Checker
+        </a>
+        <a href="{{ url_for('bottle_detection') }}" class="btn btn-primary mb-2">
+            📦 Bottle Packaging Checker
+        </a>
+        <a href="{{ url_for('defect_detection') }}" class="btn btn-primary mb-2">
+            🧪 Bottle Defect Detector
+        </a>
+    </div>
+</div>
+
+</body>
+</html>
