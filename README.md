@@ -1,23 +1,37 @@
-# Automated-Industrial-Inspection-System-using-Computer-Vision
-Automated Industrial Inspection System using Computer Vision to inspect manufactured parts and enhance quality control by using computer vision techniques. This system aims to boost inspection accuracy and efficiency, thus reducing costs and human error.
+# 🤖 Automated Industrial Inspection System using Computer Vision
 
-## Features
-- Real-time defect detection.
-- Supports multiple part types.
-- High accuracy and processing speed.
+> A smart eye for industry — transforming traditional quality control into an AI-powered, high-precision inspection system.
 
-### Steps to Simulate the Automated Industrial Inspection System:
-1. Create a virtual environment
-    ```
-    python3 -v venv object_detection
-    ```
+---
 
-2. Install the dependencies
-    ```
-    pip install -r requirements.txt
-    ```
+## 🚀 Project Overview
 
-3. Run the script
-    ```
-    python3 automated_industrial_inspection_system.py
-    ```
+In modern manufacturing, manual inspection is slow, inconsistent, and expensive.  
+This project leverages the power of **Computer Vision** to build a fully automated system that **detects defects in real-time**, ensuring only flawless products leave the production line.
+
+---
+
+## 📸 Visual Demonstration
+
+| Scanning Step | Page View | Defect Detection |
+|---------------|-----------|------------------|
+| ![Scanning](data/scanning.png) | ![Page](data/page.png) | ![Detecting](data/detecting.png) |
+
+---
+
+## 🎯 Key Features
+
+✅ **Real-Time Detection**  
+📦 **Supports Multiple Object Types**  
+⚡ **High Speed & Accuracy**  
+📈 **Scalable Architecture**  
+🧠 **AI-Ready Pipeline (Extendable to ML Models)**
+
+---
+
+## 🛠️ Quick Start
+
+### 🔧 1. Clone the Repo
+```bash
+git clone https://github.com/rajchandel866/visual-quality-control-system.git
+cd visual-quality-control-system

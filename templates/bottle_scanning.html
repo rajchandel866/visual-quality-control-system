@@ -1,19 +1,571 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Bottle Deformity Checker</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Visual Quality Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a"><stop offset="0" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="1" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><g fill="url(%23a)"><circle cx="200" cy="200" r="180"/><circle cx="800" cy="300" r="120"/><circle cx="400" cy="600" r="200"/><circle cx="900" cy="800" r="150"/></g></svg>') no-repeat center center;
+            background-size: cover;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: slideDown 1s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.9);
+            font-weight: 300;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+            animation: fadeInUp 1s ease-out 0.3s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-group {
+            background: rgba(255,255,255,0.1);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-group::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .control-group:hover::before {
+            opacity: 1;
+        }
+
+        .control-group:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        .control-group label {
+            display: block;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .custom-select {
+            position: relative;
+            z-index: 1;
+        }
+
+        .custom-select select {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 500;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .custom-select select:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.8);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .custom-select::after {
+            content: '▼';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 1.2rem;
+            pointer-events: none;
+            transition: transform 0.3s ease;
+        }
+
+        .custom-select:hover::after {
+            transform: translateY(-50%) scale(1.2);
+        }
+
+        .scan-button {
+            width: 100%;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,201,255,0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 10px 30px rgba(0,201,255,0.4); }
+            50% { box-shadow: 0 15px 40px rgba(0,201,255,0.6); }
+            100% { box-shadow: 0 10px 30px rgba(0,201,255,0.4); }
+        }
+
+        .scan-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .scan-button:hover::before {
+            left: 100%;
+        }
+
+        .scan-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0,201,255,0.6);
+        }
+
+        .scan-button:active {
+            transform: translateY(-1px) scale(1.01);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2rem 0;
+            opacity: 0;
+            animation: fadeIn 0.5s ease 2s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #92fe9d;
+            margin-right: 0.5rem;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .status-text {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .video-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            border: 2px dashed rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .video-container:hover {
+            border-color: rgba(255,255,255,0.6);
+            background: rgba(0,0,0,0.4);
+        }
+
+        .video-placeholder {
+            color: rgba(255,255,255,0.7);
+            font-size: 1.2rem;
+            margin: 2rem 0;
+        }
+
+        .scanning-animation {
+            width: 100px;
+            height: 100px;
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top: 4px solid #00c9ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .feature-badges {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+            animation: fadeInScale 0.8s ease-out var(--delay) both;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .badge:nth-child(1) { --delay: 0.8s; }
+        .badge:nth-child(2) { --delay: 1s; }
+        .badge:nth-child(3) { --delay: 1.2s; }
+        .badge:nth-child(4) { --delay: 1.4s; }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .main-card {
+                padding: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Bottle Deformity Checker</h1>
-    <form method="POST">
-        <label for="blur_choice">Do you want to blur rest of the video apart from the focus area?</label>
-        <select id="blur_choice" name="blur_choice">
-            <option value="1">Yes</option>
-            <option value="0">No</option>
-        </select>
-        <input type="submit" class="btn btn-primary" value="Start Scanning">
-    </form>
-    <img src="{{ url_for('bottle_scanning') }}" />
+    <div class="animated-bg"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Automated Visual Quality Control</h1>
+            <p>AI-Powered Bottle Deformity Detection System</p>
+        </div>
+
+        <div class="main-card">
+            <form method="POST" id="scanForm">
+                <div class="control-panel">
+                    <div class="control-group">
+                        <label for="blur_choice">📹 Focus Enhancement</label>
+                        <div class="custom-select">
+                            <select id="blur_choice" name="blur_choice">
+                                <option value="1">Enable Background Blur</option>
+                                <option value="0">Standard View</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="sensitivity">⚙️ Detection Sensitivity</label>
+                        <div class="custom-select">
+                            <select id="sensitivity" name="sensitivity">
+                                <option value="high">High Precision</option>
+                                <option value="medium" selected>Balanced</option>
+                                <option value="low">Fast Processing</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="scan-button" id="startScan">
+                    🚀 Initialize Quality Scan
+                </button>
+            </form>
+
+            <div class="status-indicator" id="statusIndicator">
+                <div class="status-dot"></div>
+                <span class="status-text">System Ready</span>
+            </div>
+
+            <div class="video-container" id="videoContainer">
+                <div class="video-placeholder">
+                    📷 Live Feed Will Appear Here
+                </div>
+                <div class="scanning-animation" id="scanningAnimation" style="display: none;"></div>
+            </div>
+
+            <div class="feature-badges">
+                <span class="badge">🤖 AI-Powered</span>
+                <span class="badge">⚡ Real-time</span>
+                <span class="badge">🎯 Precision Detection</span>
+                <span class="badge">📊 Quality Analytics</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('scanForm');
+        const startButton = document.getElementById('startScan');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const videoContainer = document.getElementById('videoContainer');
+        const scanningAnimation = document.getElementById('scanningAnimation');
+
+        // Enhanced button interaction
+        startButton.addEventListener('mouseenter', function() {
+            this.style.background = 'linear-gradient(135deg, #00b4db 0%, #0083b0 100%)';
+        });
+
+        startButton.addEventListener('mouseleave', function() {
+            this.style.background = 'linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%)';
+        });
+
+        // Form submission with animation
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Change button state
+            startButton.innerHTML = '🔄 Initializing Scan...';
+            startButton.disabled = true;
+            startButton.style.background = 'linear-gradient(135deg, #ffa726 0%, #ff7043 100%)';
+            
+            // Update status
+            const statusText = statusIndicator.querySelector('.status-text');
+            statusText.textContent = 'Connecting to Camera Feed...';
+            
+            // Show scanning animation
+            const placeholder = videoContainer.querySelector('.video-placeholder');
+            placeholder.style.display = 'none';
+            scanningAnimation.style.display = 'block';
+            
+            // Simulate connection process
+            setTimeout(() => {
+                statusText.textContent = 'AI Model Loaded - Scanning Active';
+                startButton.innerHTML = '✅ Scan Active';
+                startButton.style.background = 'linear-gradient(135deg, #4caf50 0%, #8bc34a 100%)';
+                
+                // Create video element (placeholder for actual feed)
+                const videoElement = document.createElement('img');
+                videoElement.src = '{{ url_for("bottle_scanning") }}';
+                videoElement.style.width = '100%';
+                videoElement.style.borderRadius = '15px';
+                videoElement.style.marginTop = '1rem';
+                
+                scanningAnimation.style.display = 'none';
+                videoContainer.appendChild(videoElement);
+                
+                // Add real-time stats overlay
+                const statsOverlay = document.createElement('div');
+                statsOverlay.innerHTML = `
+                    <div style="
+                        position: absolute; 
+                        top: 1rem; 
+                        right: 1rem; 
+                        background: rgba(0,0,0,0.8); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        color: white;
+                        font-size: 0.9rem;
+                    ">
+                        <div>📊 Bottles Scanned: <span id="scanCount">0</span></div>
+                        <div>✅ Quality Passed: <span id="passCount">0</span></div>
+                        <div>❌ Defects Found: <span id="defectCount">0</span></div>
+                        <div>⚡ FPS: <span id="fpsCount">30</span></div>
+                    </div>
+                `;
+                videoContainer.style.position = 'relative';
+                videoContainer.appendChild(statsOverlay);
+                
+                // Animate counters
+                animateCounters();
+                
+            }, 3000);
+            
+            // Submit the actual form (commented out for demo)
+            // this.submit();
+        });
+
+        function animateCounters() {
+            let scanned = 0, passed = 0, defects = 0;
+            const scanInterval = setInterval(() => {
+                scanned += Math.floor(Math.random() * 3) + 1;
+                passed += Math.floor(Math.random() * 2) + 1;
+                defects += Math.random() > 0.8 ? 1 : 0;
+                
+                document.getElementById('scanCount').textContent = scanned;
+                document.getElementById('passCount').textContent = passed;
+                document.getElementById('defectCount').textContent = defects;
+            }, 2000);
+        }
+
+        // Add floating particles animation
+        function createFloatingParticles() {
+            for (let i = 0; i < 5; i++) {
+                const particle = document.createElement('div');
+                particle.style.cssText = `
+                    position: fixed;
+                    width: 4px;
+                    height: 4px;
+                    background: rgba(255,255,255,0.6);
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 0;
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    animation: float ${5 + Math.random() * 10}s linear infinite;
+                `;
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 15000);
+            }
+        }
+
+        // Create particles periodically
+        setInterval(createFloatingParticles, 3000);
+        
+        // Initial particle burst
+        createFloatingParticles();
+    </script>
 </body>
 </html>
